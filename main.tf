@@ -19,7 +19,7 @@ data "aws_s3_bucket" "bucket" {
 resource "aws_s3_bucket_object" "object" {
   bucket = data.aws_s3_bucket.bucket.bucket  # Reference the existing bucket
   key    = "main.tf"
-  source = "/Users/devops-workshop-barg/tfWix/main.tf"
+  source = "/Users/devops-workshop-barg/tfWix/terraform.tfstate"
   etag   = filemd5("/Users/devops-workshop-barg/tfWix/main.tf")
 }
 
@@ -35,14 +35,15 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   # EKS Addons I dont know yet what it is
-  cluster_addons = {
-    coredns                = {}
-    eks-pod-identity-agent = {}
-    kube-proxy             = {}
-    vpc-cni                = {}
-  }
+  # cluster_addons = {
+  #   coredns                = {}
+  #   eks-pod-identity-agent = {}
+  #   kube-proxy             = {}
+  #   vpc-cni                = {}
+  # }
 
   vpc_id     = var.vpc_id
+  # The subnet_ids is a array object that contain all subnets
   subnet_ids = var.subnet_ids
 
   eks_managed_node_group_defaults = {
