@@ -16,12 +16,61 @@ data "aws_s3_bucket" "bucket" {
   bucket = "barg-bucket2"  # Use the correct existing bucket name
 }
 
-resource "aws_s3_bucket_object" "object" {
+resource "aws_s3_object" "object" {
   bucket = data.aws_s3_bucket.bucket.bucket  # Reference the existing bucket
-  key    = "main.tf"
-  source = "/Users/devops-workshop-barg/tfWix/terraform.tfstate"
-  etag   = filemd5("/Users/devops-workshop-barg/tfWix/main.tf")
+  key    = "terraform.tfstate"
+  source = "/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate"
+  etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
 }
+
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cider
+  tags = {
+    Name = "DevOps-Workshop"
+  }
+}
+resource "aws_subnet" "public_subnet" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = var.subnet_public
+  availability_zone = "eu-west-1c"
+  tags = {
+    Name = "barg-sub1"
+  }
+}
+resource "aws_subnet" "private_subnet" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = var.subnet_private
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "barg-sub2"
+  }
+}
+
+resource "aws_internet_gateway" "igw"{
+    vpc_id = aws_vpc.main.id
+
+}
+
+resource "aws_route_table" "PublicRT"{
+    vpc_id = aws_vpc.main.id
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.igw.id
+    }
+
+}
+
+resource "aws_route_table_association" "PublicRTassociation"{
+    subnet_id = aws_subnet.public_subnet.id
+    route_table_id = aws_route_table.PublicRT.id
+
+
+}
+
+
+
+
 
 
 module "eks" {
@@ -42,9 +91,12 @@ module "eks" {
   #   vpc-cni                = {}
   # }
 
-  vpc_id     = var.vpc_id
+  vpc_id     = aws_vpc.main.id
   # The subnet_ids is a array object that contain all subnets
-  subnet_ids = var.subnet_ids
+  subnet_ids = [
+    aws_subnet.public_subnet.id,
+    aws_subnet.private_subnet.id
+  ]
 
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
