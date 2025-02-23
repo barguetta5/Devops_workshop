@@ -11,19 +11,19 @@ provider "aws" {
   region  = "eu-west-1"
   profile = "default"
 }
-
+# The name of the bucket in s3
 data "aws_s3_bucket" "bucket" {
-  bucket = "barg-bucket2"  # Use the correct existing bucket name
+  bucket = "barg-bucket2"  
 }
-
+# The path of the faile i will put int s3(the state file)
 resource "aws_s3_object" "object" {
-  bucket = data.aws_s3_bucket.bucket.bucket  # Reference the existing bucket
+  bucket = data.aws_s3_bucket.bucket.bucket  
   key    = "terraform.tfstate"
   source = "/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate"
   etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
 }
 
-
+# Creating the eks module
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.24.0"
@@ -43,7 +43,6 @@ module "eks" {
   # }
 
   vpc_id     = data.aws_vpc.vpc_cidr.id
-  # The subnet_ids is a array object that contain all subnets
   subnet_ids = [
     data.aws_subnet.private.id,
     data.aws_subnet.public.id 
