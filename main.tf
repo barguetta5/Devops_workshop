@@ -23,55 +23,6 @@ resource "aws_s3_object" "object" {
   etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cider
-  tags = {
-    Name = "DevOps-Workshop"
-  }
-}
-resource "aws_subnet" "public_subnet" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.subnet_public
-  availability_zone = "eu-west-1c"
-  tags = {
-    Name = "barg-sub1"
-  }
-}
-resource "aws_subnet" "private_subnet" {
-  vpc_id = aws_vpc.main.id
-  cidr_block = var.subnet_private
-  availability_zone = "eu-west-1a"
-
-  tags = {
-    Name = "barg-sub2"
-  }
-}
-
-resource "aws_internet_gateway" "igw"{
-    vpc_id = aws_vpc.main.id
-
-}
-
-resource "aws_route_table" "PublicRT"{
-    vpc_id = aws_vpc.main.id
-    route {
-        cidr_block = "0.0.0.0/0"
-        gateway_id = aws_internet_gateway.igw.id
-    }
-
-}
-
-resource "aws_route_table_association" "PublicRTassociation"{
-    subnet_id = aws_subnet.public_subnet.id
-    route_table_id = aws_route_table.PublicRT.id
-
-
-}
-
-
-
-
-
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -91,11 +42,11 @@ module "eks" {
   #   vpc-cni                = {}
   # }
 
-  vpc_id     = aws_vpc.main.id
+  vpc_id     = data.aws_vpc.vpc_cidr.id
   # The subnet_ids is a array object that contain all subnets
   subnet_ids = [
-    aws_subnet.public_subnet.id,
-    aws_subnet.private_subnet.id
+    data.aws_subnet.private.id,
+    data.aws_subnet.public.id 
   ]
 
   eks_managed_node_group_defaults = {
