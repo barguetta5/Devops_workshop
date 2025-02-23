@@ -16,11 +16,11 @@ data "aws_s3_bucket" "bucket" {
   bucket = "barg-bucket2"  # Use the correct existing bucket name
 }
 
-resource "aws_s3_bucket_object" "object" {
+resource "aws_s3_object" "object" {
   bucket = data.aws_s3_bucket.bucket.bucket  # Reference the existing bucket
-  key    = "main.tf"
-  source = "/Users/devops-workshop-barg/tfWix/terraform.tfstate"
-  etag   = filemd5("/Users/devops-workshop-barg/tfWix/main.tf")
+  key    = "terraform.tfstate"
+  source = "/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate"
+  etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
 }
 
 
@@ -42,9 +42,12 @@ module "eks" {
   #   vpc-cni                = {}
   # }
 
-  vpc_id     = var.vpc_id
+  vpc_id     = data.aws_vpc.vpc_cidr.id
   # The subnet_ids is a array object that contain all subnets
-  subnet_ids = var.subnet_ids
+  subnet_ids = [
+    data.aws_subnet.private.id,
+    data.aws_subnet.public.id 
+  ]
 
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
