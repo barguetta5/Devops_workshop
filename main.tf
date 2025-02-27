@@ -6,7 +6,6 @@ terraform {
     }
   }
 }
-
 provider "aws" {
   region  = "eu-west-1"
   profile = "default"
@@ -16,49 +15,49 @@ data "aws_s3_bucket" "bucket" {
   bucket = "barg-bucket2"  
 }
 # The path of the faile i will put int s3(the state file)
-resource "aws_s3_object" "object" {
-  bucket = data.aws_s3_bucket.bucket.bucket  
-  key    = "terraform.tfstate"
-  source = "/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate"
-  etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
-}
+# resource "aws_s3_object" "object" {
+#   bucket = data.aws_s3_bucket.bucket.bucket  
+#   key    = "terraform.tfstate"
+#   source = "/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate"
+#   etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
+# }
 
-resource "aws_subnet" "private_subnet" {
-  vpc_id      = data.aws_vpc.vpc_cidr.id
-  cidr_block  = data.aws_subnet.private.cidr_block
-  availability_zone = "eu-west-1a"
+# resource "aws_subnet" "private_subnet" {
+#   vpc_id      = data.aws_vpc.vpc_cidr.id
+#   cidr_block  = data.aws_subnet.private.cidr_block
+#   availability_zone = "eu-west-1a"
 
-  tags = {
-    Name = "barg-privat"
-  }
-}
-resource "aws_subnet" "public_subnet" {
-  vpc_id      = data.aws_vpc.vpc_cidr.id
-  cidr_block  = data.aws_subnet.public.cidr_block
-  availability_zone = "eu-west-1b"
+#   tags = {
+#     Name = "barg-privat"
+#   }
+# }
+# resource "aws_subnet" "public_subnet" {
+#   vpc_id      = data.aws_vpc.vpc_cidr.id
+#   cidr_block  = data.aws_subnet.public.cidr_block
+#   availability_zone = "eu-west-1b"
 
-  tags = {
-    Name = "barg-public"
-  }
-}
+#   tags = {
+#     Name = "barg-public"
+#   }
+# }
 
-resource "aws_internet_gateway" "devops-workshop-igw" {
-  vpc_id      = data.aws_vpc.vpc_cidr.id
-}
-resource "aws_route_table" "BarGu_RT"{
-  vpc_id      = data.aws_vpc.vpc_cidr.id
-  route{
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.devops-workshop-igw.id
-  }
+# resource "aws_internet_gateway" "devops-workshop-igw" {
+#   vpc_id      = data.aws_vpc.vpc_cidr.id
+# }
+# resource "aws_route_table" "BarGu_RT"{
+#   vpc_id      = data.aws_vpc.vpc_cidr.id
+#   route{
+#     cidr_block = "0.0.0.0/0"
+#     gateway_id = aws_internet_gateway.devops-workshop-igw.id
+#   }
 
-}
+# }
 
-resource "aws_route_table_association" "barG-publicRTassociation" {
-  subnet_id      = aws_subnet.public_subnet.id
-  route_table_id = aws_route_table.BarGu_RT.id
+# resource "aws_route_table_association" "barG-publicRTassociation" {
+#   subnet_id      = aws_subnet.public_subnet.id
+#   route_table_id = aws_route_table.BarGu_RT.id
 
-}
+# }
 
 # Creating the eks module
 module "eks" {
