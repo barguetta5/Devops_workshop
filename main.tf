@@ -47,17 +47,23 @@ resource "aws_subnet" "public_sub" {
   }
 }
 
-resource "aws_internet_gateway" "devops-workshop-igw" {
-  vpc_id      = data.aws_vpc.vpc_cidr.id
+data "aws_internet_gateway" "devops-workshop-igw" {
+  filter {
+    name   = "tag:Name"           # Filters based on the 'Name' tag
+    values = ["devops-workshop-igw"]  
+  }
 }
-resource "aws_route_table" "BarGu_RT"{
-  vpc_id      = data.aws_vpc.vpc_cidr.id
+resource "aws_route_table" "BarGu_RT" {
+  vpc_id = data.aws_vpc.vpc_cidr.id  # Reference to the existing VPC
 
-  route{
+  route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.devops-workshop-igw.id
+    gateway_id = data.aws_internet_gateway.devops-workshop-igw.id  # Correct reference to the existing Internet Gateway
   }
 
+  tags = {
+    Name = "BarGu-route-table"
+  }
 }
 
 resource "aws_route_table_association" "barG-publicRTassociation" {
