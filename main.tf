@@ -14,21 +14,13 @@ provider "aws" {
 data "aws_s3_bucket" "bucket" {
   bucket = "barg-bucket2"  
 }
-# The path of the faile i will put int s3(the state file)
-# resource "aws_s3_object" "object" {
-#   bucket = data.aws_s3_bucket.bucket.bucket  
-#   key    = "terraform.tfstate"
-#   source = "/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate"
-#   etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
-# }
-
 
 # Create a new private subnet in the existing VPC
 resource "aws_subnet" "private_sub" {
   vpc_id                  = data.aws_vpc.vpc_cidr.id
-  cidr_block              = "192.168.17.0/24"  # Set the CIDR block for the private subnet
+  cidr_block              = "192.168.17.0/24"
   availability_zone       = "eu-west-1a"
-  map_public_ip_on_launch = false  # Private subnet doesn't assign public IP by default
+  map_public_ip_on_launch = false 
 
   tags = {
     Name = "barg-private-subnet"
@@ -38,9 +30,9 @@ resource "aws_subnet" "private_sub" {
 # Create a new public subnet in the existing VPC
 resource "aws_subnet" "public_sub" {
   vpc_id                  = data.aws_vpc.vpc_cidr.id
-  cidr_block              = "192.168.16.0/24"  # Set the CIDR block for the public subnet
+  cidr_block              = "192.168.16.0/24" 
   availability_zone       = "eu-west-1b"
-  map_public_ip_on_launch = true   # Public subnet assigns public IPs by default
+  map_public_ip_on_launch = true  
 
   tags = {
     Name = "barg-public-subnet"
@@ -49,16 +41,16 @@ resource "aws_subnet" "public_sub" {
 
 data "aws_internet_gateway" "devops-workshop-igw" {
   filter {
-    name   = "tag:Name"           # Filters based on the 'Name' tag
+    name   = "tag:Name"          
     values = ["devops-workshop-igw"]  
   }
 }
 resource "aws_route_table" "BarGu_RT" {
-  vpc_id = data.aws_vpc.vpc_cidr.id  # Reference to the existing VPC
+  vpc_id = data.aws_vpc.vpc_cidr.id 
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = data.aws_internet_gateway.devops-workshop-igw.id  # Correct reference to the existing Internet Gateway
+    gateway_id = data.aws_internet_gateway.devops-workshop-igw.id 
   }
 
   tags = {
