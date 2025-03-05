@@ -22,49 +22,56 @@ data "aws_s3_bucket" "bucket" {
 #   etag   = filemd5("/Users/devops-workshop-barg/wixproj/Devops_workshop/terraform.tfstate")
 # }
 
-# resource "aws_subnet" "private_subnet" {
-#   vpc_id      = data.aws_vpc.vpc_cidr.id
-#   cidr_block  = data.aws_subnet.private.cidr_block
-#   availability_zone = "eu-west-1a"
 
-#   tags = {
-#     Name = "barg-privat"
-#   }
-# }
-# resource "aws_subnet" "public_subnet" {
-#   vpc_id      = data.aws_vpc.vpc_cidr.id
-#   cidr_block  = data.aws_subnet.public.cidr_block
-#   availability_zone = "eu-west-1b"
+# Create a new private subnet in the existing VPC
+resource "aws_subnet" "private_sub" {
+  vpc_id                  = data.aws_vpc.vpc_cidr.id
+  cidr_block              = "192.168.17.0/24"  # Set the CIDR block for the private subnet
+  availability_zone       = "eu-west-1a"
+  map_public_ip_on_launch = false  # Private subnet doesn't assign public IP by default
 
-#   tags = {
-#     Name = "barg-public"
-#   }
-# }
+  tags = {
+    Name = "barg-private-subnet"
+  }
+}
 
-# resource "aws_internet_gateway" "devops-workshop-igw" {
-#   vpc_id      = data.aws_vpc.vpc_cidr.id
-# }
-# resource "aws_route_table" "BarGu_RT"{
-#   vpc_id      = data.aws_vpc.vpc_cidr.id
-#   route{
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_internet_gateway.devops-workshop-igw.id
-#   }
+# Create a new public subnet in the existing VPC
+resource "aws_subnet" "public_sub" {
+  vpc_id                  = data.aws_vpc.vpc_cidr.id
+  cidr_block              = "192.168.16.0/24"  # Set the CIDR block for the public subnet
+  availability_zone       = "eu-west-1b"
+  map_public_ip_on_launch = true   # Public subnet assigns public IPs by default
 
-# }
+  tags = {
+    Name = "barg-public-subnet"
+  }
+}
 
-# resource "aws_route_table_association" "barG-publicRTassociation" {
-#   subnet_id      = aws_subnet.public_subnet.id
-#   route_table_id = aws_route_table.BarGu_RT.id
+resource "aws_internet_gateway" "devops-workshop-igw" {
+  vpc_id      = data.aws_vpc.vpc_cidr.id
+}
+resource "aws_route_table" "BarGu_RT"{
+  vpc_id      = data.aws_vpc.vpc_cidr.id
 
-# }
+  route{
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.devops-workshop-igw.id
+  }
+
+}
+
+resource "aws_route_table_association" "barG-publicRTassociation" {
+  subnet_id      = aws_subnet.public_sub.id
+  route_table_id = aws_route_table.BarGu_RT.id
+
+}
 
 # Creating the eks module
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.24.0"
 
-  cluster_name    = "barg-cluster"
+  cluster_name    = "barg-fisrt-cluster"
   cluster_version = "1.29"
 
   cluster_endpoint_public_access           = true
@@ -80,8 +87,8 @@ module "eks" {
 
   vpc_id     = data.aws_vpc.vpc_cidr.id
   subnet_ids = [
-    data.aws_subnet.private.id,
-    data.aws_subnet.public.id 
+    aws_subnet.private_sub.id,
+    aws_subnet.public_sub.id 
   ]
 
   eks_managed_node_group_defaults = {
@@ -91,7 +98,7 @@ module "eks" {
 
   eks_managed_node_groups = {
     one = {
-      name = "barg-node-group-1"
+      name = "barg-first-node-group"
 
       instance_types = ["t2.micro"]
 
